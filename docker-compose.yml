@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  impala:
+    image: impala-kudu
+  bongo.example:
+    image: bongo.example
+    build:
+      context: ./example/Bongo.Example
+      dockerfile: Dockerfile
+    links:
+      - impala

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>0.1.0</Version>
+    <Authors>benjamin@syncromatics.com</Authors>
+    <Company>Syncromatics</Company>
+    <Description>Bongo is a .Net thrift client for impala.</Description>
+    <Copyright>Copyright 2017</Copyright>
+    <PackageTags>impala kudu thrift</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ThriftSharp" Version="6.0.1" />
+  </ItemGroup>
+
+</Project>

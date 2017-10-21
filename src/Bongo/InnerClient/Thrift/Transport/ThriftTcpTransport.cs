@@ -5,9 +5,9 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using ThriftSharp.Transport;
 
-namespace Bongo.Thrift.Transport
+namespace Bongo.InnerClient.Thrift.Transport
 {
-    public sealed class ThriftTcpTransport : IThriftTransport
+    internal sealed class ThriftTcpTransport : IThriftTransport
     {
         private static readonly ConcurrentDictionary<Guid, TcpClient> Clients = new ConcurrentDictionary<Guid, TcpClient>();
 

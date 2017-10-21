@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Bongo.Impala;
-using Bongo.Thrift.Transport;
+using Bongo.InnerClient.Impala;
+using Bongo.InnerClient.Thrift.Transport;
 using ThriftSharp;
 
-namespace Bongo
+namespace Bongo.InnerClient
 {
-    public class ImpalaClient : IDisposable
+    internal class ImpalaClient : IDisposable
     {
         private readonly IImpalaService _impalaService;
         private readonly Guid _id = Guid.NewGuid();
@@ -57,6 +57,16 @@ namespace Bongo
         public Task<ExecSummary> GetExecSummary(QueryHandle handle)
         {
             return _impalaService.GetExecSummary(handle);
+        }
+
+        public Task<ResultsMetadata> GetResultsMetadata(QueryHandle handle)
+        {
+            return _impalaService.GetResultsMetadata(handle);
+        }
+
+        public Task Close(QueryHandle handle)
+        {
+            return _impalaService.Close(handle);
         }
 
         public void Dispose()

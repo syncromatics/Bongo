@@ -17,16 +17,19 @@ namespace Bongo.IntegrationTests
         {
             var client = new DockerClient();
             client.PullImage("andreysabitov/impala-kudu");
-            client.RunOrReplace("andreysabitov/impala-kudu", "impala-test");
-
-            var ipString = client.Inspect("impala-test", "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}");
-
-            IPAddress ip;
-            if (!IPAddress.TryParse(ipString, out ip))
+            client.RunOrReplace("andreysabitov/impala-kudu", "latest", new RunArguments
             {
-                throw new Exception("Not an ip. Please check container configuration");
-            }
+                Name = "impala-test",
+                HostName = "impala-test",
+                PortMappings = new Dictionary<string, string>
+                {
+                    {"21000", "21000" }
+                }
+            });
 
+            IPAddress ip = IPAddress.Parse("127.0.0.1");
+
+            // Wait for impala here so we dont scew test times
             var stopWatch = new Stopwatch();
             stopWatch.Start();
             while (stopWatch.Elapsed < TimeSpan.FromMinutes(5))

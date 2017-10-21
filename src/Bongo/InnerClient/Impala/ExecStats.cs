@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using ThriftSharp;
 
-namespace Bongo.Impala
+namespace Bongo.InnerClient.Impala
 {
     [ThriftEnum]
-    public enum ExecState
+    internal enum ExecState
     {
         Registered = 0,
         Planning = 1,
@@ -19,7 +19,7 @@ namespace Bongo.Impala
     /// Execution stats for a single plan node.
     /// </summary>
     [ThriftStruct("TExecStats")]
-    public class ExecStats
+    internal class ExecStats
     {
         /// <summary>
         /// The wall clock time spent on the "main" thread. This is the user perceived
@@ -56,7 +56,7 @@ namespace Bongo.Impala
     /// node as well as per instance stats.
     /// </summary>
     [ThriftStruct("TPlanNodeExecSummary")]
-    public class PlanNodeExecSummary
+    internal class PlanNodeExecSummary
     {
         [ThriftField(1, true, "node_id")]
         public int NodeId { get; set; }
@@ -90,7 +90,7 @@ namespace Bongo.Impala
     /// Execution summary of an entire query.
     /// </summary>
     [ThriftStruct("TExecSummary")]
-    public class ExecSummary
+    internal class ExecSummary
     {
         /// <summary>
         /// State of the query.

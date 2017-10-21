@@ -1,21 +1,27 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bongo", "src\Bongo\Bongo.csproj", "{6893A265-104D-4284-B4A8-946F4424A018}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo", "src\Bongo\Bongo.csproj", "{6893A265-104D-4284-B4A8-946F4424A018}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bongo.Example", "example\Bongo.Example\Bongo.Example.csproj", "{E58351F2-6B35-45E2-B91E-7D6F0AD65618}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo.Example", "example\Bongo.Example\Bongo.Example.csproj", "{E58351F2-6B35-45E2-B91E-7D6F0AD65618}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C01FE347-F74C-4535-BC5B-51AFF1BF3414}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bongo.IntegrationTests", "test\Bongo.IntegrationTests\Bongo.IntegrationTests.csproj", "{3DE1F63E-A85F-4646-83B4-670180EB3EC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo.IntegrationTests", "test\Bongo.IntegrationTests\Bongo.IntegrationTests.csproj", "{3DE1F63E-A85F-4646-83B4-670180EB3EC1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D2F94E7-9182-4C29-B350-E6FA2E54D5C4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{610A41F5-FE35-4AD5-AE8D-FE407D5F72E9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{96125282-CE47-44C7-B37A-12C5A7940DF1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo.UnitTests", "test\Bongo.UnitTests\Bongo.UnitTests.csproj", "{CBAB7740-0389-41D9-AFCC-C2144D3E4A0F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "unit", "unit", "{5A1C80BF-5D98-4874-AF13-03524059CF97}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "integration", "integration", "{2C4DD8C6-DC7D-49AA-9DF7-029F9D2055BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +45,10 @@ Global
 		{3DE1F63E-A85F-4646-83B4-670180EB3EC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DE1F63E-A85F-4646-83B4-670180EB3EC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DE1F63E-A85F-4646-83B4-670180EB3EC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBAB7740-0389-41D9-AFCC-C2144D3E4A0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBAB7740-0389-41D9-AFCC-C2144D3E4A0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBAB7740-0389-41D9-AFCC-C2144D3E4A0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBAB7740-0389-41D9-AFCC-C2144D3E4A0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,7 +56,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{6893A265-104D-4284-B4A8-946F4424A018} = {3D2F94E7-9182-4C29-B350-E6FA2E54D5C4}
 		{E58351F2-6B35-45E2-B91E-7D6F0AD65618} = {96125282-CE47-44C7-B37A-12C5A7940DF1}
-		{3DE1F63E-A85F-4646-83B4-670180EB3EC1} = {610A41F5-FE35-4AD5-AE8D-FE407D5F72E9}
+		{3DE1F63E-A85F-4646-83B4-670180EB3EC1} = {2C4DD8C6-DC7D-49AA-9DF7-029F9D2055BA}
+		{CBAB7740-0389-41D9-AFCC-C2144D3E4A0F} = {5A1C80BF-5D98-4874-AF13-03524059CF97}
+		{5A1C80BF-5D98-4874-AF13-03524059CF97} = {610A41F5-FE35-4AD5-AE8D-FE407D5F72E9}
+		{2C4DD8C6-DC7D-49AA-9DF7-029F9D2055BA} = {610A41F5-FE35-4AD5-AE8D-FE407D5F72E9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E285193B-FED7-427D-8988-BAE8F0987282}

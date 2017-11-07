@@ -2,7 +2,7 @@
 
 namespace Bongo
 {
-    public class InsertException : Exception
+    internal class InsertException : Exception
     {
         public InsertException(string message) : base(message)
         {

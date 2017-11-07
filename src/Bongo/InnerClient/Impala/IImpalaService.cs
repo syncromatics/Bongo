@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ThriftSharp;
 
-namespace Bongo.Impala
+namespace Bongo.InnerClient.Impala
 {
     [ThriftService("ImpalaService")]
-    public interface IImpalaService
+    internal interface IImpalaService
     {
         [ThriftMethod("PingImpalaService")]
         Task<PingImpalaServiceResponse> PingImpalaServiceAsync();
@@ -35,17 +35,24 @@ namespace Bongo.Impala
         [ThriftMethod("GetExecSummary")]
         [ThriftThrows(2, "error2", typeof(BeeswaxException))]
         Task<ExecSummary> GetExecSummary([ThriftParameter(1, "handle")]QueryHandle handle);
+
+        [ThriftMethod("get_results_metadata")]
+        Task<ResultsMetadata> GetResultsMetadata([ThriftParameter(1, "handle")] QueryHandle handle);
+
+        [ThriftMethod("close")]
+        [ThriftThrows(2, "error2", typeof(BeeswaxException))]
+        Task Close([ThriftParameter(1, "handle")] QueryHandle handle);
     }
 
     [ThriftStruct("TPingImpalaServiceResp")]
-    public sealed class PingImpalaServiceResponse
+    internal sealed class PingImpalaServiceResponse
     {
         [ThriftField(1, true, "version")]
         public string Version { get; set; }
     }
 
     [ThriftStruct("QueryHandle")]
-    public sealed class QueryHandle
+    internal sealed class QueryHandle
     {
         [ThriftField(1, true, "id")]
         public string Id { get; set; }
@@ -55,7 +62,7 @@ namespace Bongo.Impala
     }
 
     [ThriftStruct("Query")]
-    public sealed class Query
+    internal sealed class Query
     {
         [ThriftField(1, true, "query")]
         public string QueryString { get; set; }
@@ -77,7 +84,7 @@ namespace Bongo.Impala
     }
 
     [ThriftStruct("Results")]
-    public sealed class Results
+    internal sealed class Results
     {
         [ThriftField(1, true, "ready")]
         public bool Ready { get; set; }
@@ -96,7 +103,7 @@ namespace Bongo.Impala
     }
 
     [ThriftEnum]
-    public enum QueryState
+    internal enum QueryState
     {
         Created = 0,
         Initialized = 1,
@@ -107,7 +114,7 @@ namespace Bongo.Impala
     }
 
     [ThriftStruct("BeeswaxException")]
-    public class BeeswaxException : Exception
+    internal class BeeswaxException : Exception
     {
         [ThriftField(1, true, "message")]
         public string Message { get; set; }
@@ -126,12 +133,51 @@ namespace Bongo.Impala
     }
 
     [ThriftStruct("TInsertResult")]
-    public class InsertResult
+    internal class InsertResult
     {
         [ThriftField(1, true, "rows_modified")]
         public IDictionary<string, long> RowsModified { get; set; }
 
         [ThriftField(2, false, "num_row_errors")]
         public long? NumberRowsErrors { get; set; }
+    }
+
+    [ThriftStruct("ResultsMetadata")]
+    internal class ResultsMetadata
+    {
+        [ThriftField(1, true, "schema")]
+        public Schema Schema { get; set; }
+
+        [ThriftField(2, true, "table_dir")]
+        public string TableDirectory { get; set; }
+
+        [ThriftField(3, true, "in_tablename")]
+        public string InTableName { get; set; }
+
+        [ThriftField(4, true, "delim")]
+        public string Delimiter { get; set; }
+    }
+
+    [ThriftStruct("Schema")]
+    internal class Schema
+    {
+        [ThriftField(1, true, "fieldSchemas")]
+        public IList<FieldSchema> FieldSchemas { get; set; }
+
+        [ThriftField(2, true, "properties")]
+        public IDictionary<string, string> Properties { get; set; }
+    }
+
+    [ThriftStruct("FieldSchema")]
+    internal class FieldSchema
+    {
+        [ThriftField(1, true, "name")]
+        public string Name { get; set; }
+
+        [ThriftField(2, true, "type")]
+        public string Type { get; set; }
+
+        [ThriftField(3, true, "comments")]
+        public string Comments { get; set; }
     }
 }

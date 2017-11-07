@@ -13,6 +13,7 @@ before_install:
 
 script:
   - dotnet build src/Bongo
+  - dotnet test test/Bongo.UnitTests
   - dotnet test test/Bongo.IntegrationTests
   - "if [[ $TRAVIS_PULL_REQUEST == 'false' && $TRAVIS_TAG ]]; then 
   dotnet pack src/Bongo --configuration Release /p:Version=$TRAVIS_TAG;

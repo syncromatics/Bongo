@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Bongo.Impala;
+using Bongo.TableDefinitions;
 
 namespace Bongo.Example
 {
@@ -9,42 +10,70 @@ namespace Bongo.Example
     {
         static async Task Main(string[] args)
         {
-            QueryHandle result;
-            //await Task.Delay(TimeSpan.FromMinutes(1));
             var ip = Dns.GetHostAddresses("impala");
-            using (var bongoClient = new BongoClient(new IPEndPoint(ip[0], 21000)))
+            using (var bongoClient = new BongoClient(new List<IPEndPoint> { new IPEndPoint(ip[0], 21000) }, 50))
             {
-                var version = await bongoClient.GetImpalaVersion();
-                //await bongoClient.CreateDatabase("test_database");
-                await bongoClient.UseDatabase("test_database");
-                await bongoClient.ExecuteNoResult(@"
-CREATE TABLE IF NOT EXISTS vehicle_positions (
-    vehicle_id BIGINT NOT NULL,
-    customer_id BIGINT NOT NULL,
-    time BIGINT NOT NULL,
-    latitude FLOAT NOT NULL,
-    longitude FLOAT NOT NULL,
-    PRIMARY KEY (vehicle_id, customer_id, time)
-)
-PARTITION BY HASH (vehicle_id) PARTITIONS 3,
-RANGE(time)
-(
-    PARTITION 1498867200 <= VALUES <= 1501545599,
-    PARTITION 1501545600 <= VALUES <= 1504223999,
-    PARTITION 1504224000 <= VALUES <= 1506815999
-)
-STORED AS KUDU
-TBLPROPERTIES (
-    'kudu.num_tablet_replicas' = '1'
-);");
-                await bongoClient.Insert($@"
-insert into 
-    vehicle_positions
-values
-    (1,2,{DateTimeOffset.UtcNow.ToUnixTimeSeconds()},30.12, 120.2);");
+                var items = new List<TestEntity>
+                {
+                    new TestEntity
+                    {
+                        Time = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                        Passes = 10,
+                        Fails = 2
+                    },
+                    new TestEntity
+                    {
+                        Time = new DateTimeOffset(2000, 1, 2, 0, 0, 0, TimeSpan.Zero),
+                        Passes = 5,
+                        Fails = 20
+                    },
+                    new TestEntity
+                    {
+                        Time = new DateTimeOffset(2000, 1, 10, 0, 0, 0, TimeSpan.Zero),
+                        Passes = 10,
+                        Fails = 2
+                    },
+                    new TestEntity
+                    {
+                        Time = new DateTimeOffset(2000, 1, 20, 0, 0, 0, TimeSpan.Zero),
+                        Passes = 1,
+                        Fails = 3
+                    }
+                };
 
-                var rows = await bongoClient.Query("select * from vehicle_positions;");
+                await bongoClient.Insert(items, true);
+
+                var results = await bongoClient.Query<Projection>($@"
+select
+    sum(passes) as totalpasses,
+    sum(fails) as totalfails,
+    floor(time/{TimeSpan.FromDays(30).TotalMilliseconds}) as bucket
+from
+    aggregation_test_1
+group by
+    floor(time/{TimeSpan.FromDays(30).TotalMilliseconds});
+");
             }
         }
+    }
+
+    [RangePartition("time", 5)]
+    [Table("tests", true)]
+    [KuduReplicas(1)]
+    public class TestEntity
+    {
+        [PrimaryKey]
+        public DateTimeOffset Time { get; set; }
+
+        public int Passes { get; set; }
+
+        public int Fails { get; set; }
+    }
+
+    public class Projection
+    {
+        public long Bucket { get; set; }
+        public int TotalPasses { get; set; }
+        public int TotalFails { get; set; }
     }
 }

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using ThriftSharp;
 
-namespace Bongo.Impala
+namespace Bongo.InnerClient.Impala
 {
     [ThriftEnum]
-    public enum StatusCode
+    internal enum StatusCode
     {
         Ok = 0,
         Cancelled = 1,
@@ -17,7 +17,7 @@ namespace Bongo.Impala
     }
 
     [ThriftStruct("TStatus")]
-    public class Status
+    internal class Status
     {
         [ThriftField(1, true, "status_code")]
         public StatusCode StatusCode { get; set; }

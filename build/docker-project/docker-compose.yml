@@ -7,7 +7,7 @@ services:
   bongo.example:
     image: bongo.example
     build:
-      context: ./example/Bongo.Example
+      context: ../../example/Bongo.Example
       dockerfile: Dockerfile
     links:
       - impala

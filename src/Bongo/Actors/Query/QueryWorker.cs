@@ -5,6 +5,7 @@ using Akka.Actor;
 using Bongo.Actors.Pools.Messages;
 using Bongo.Actors.Query.Messages;
 using Bongo.InnerClient;
+using Bongo.InnerClient.Impala;
 using Bongo.TableDefinitions;
 
 namespace Bongo.Actors.Query
@@ -37,9 +38,21 @@ namespace Bongo.Actors.Query
             {
                 try
                 {
-                    var response = await lease.Connection.Ask<QueryResponse>(new LeaseQuery(request.QueryString, lease.ConnectionLeaseId));
-                    var parsedResponse = ParseResults(response, request.ResponseType);
-                    sender.Tell(parsedResponse);
+                    var response =
+                        await lease.Connection.Ask(new LeaseQuery(request.QueryString, lease.ConnectionLeaseId));
+                    switch (response)
+                    {
+                        case QueryResponse queryResponse:
+                            var parsedResponse = ParseResults(queryResponse, request.ResponseType);
+                            sender.Tell(parsedResponse);
+                            break;
+                        case BeeswaxException exception:
+                            sender.Tell(exception);
+                            break;
+                        case Exception exception:
+                            sender.Tell(exception);
+                            break;
+                    }
                 }
                 catch (Exception e)
                 {

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo", "src\Bongo\Bongo.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo.Example", "example\Bongo.Example\Bongo.Example.csproj", "{E58351F2-6B35-45E2-B91E-7D6F0AD65618}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{C01FE347-F74C-4535-BC5B-51AFF1BF3414}"
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "build\docker-project\docker-compose.dcproj", "{C01FE347-F74C-4535-BC5B-51AFF1BF3414}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bongo.IntegrationTests", "test\Bongo.IntegrationTests\Bongo.IntegrationTests.csproj", "{3DE1F63E-A85F-4646-83B4-670180EB3EC1}"
 EndProject

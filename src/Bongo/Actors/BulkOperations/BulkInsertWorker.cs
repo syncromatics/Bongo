@@ -5,6 +5,7 @@ using Akka.Actor;
 using Bongo.Actors.BulkOperations.Messages;
 using Bongo.Actors.Pools.Messages;
 using Bongo.Actors.Tables;
+using Bongo.InnerClient.Impala;
 using Bongo.TableDefinitions;
 
 namespace Bongo.Actors.BulkOperations
@@ -69,9 +70,19 @@ namespace Bongo.Actors.BulkOperations
                 try
                 {
                     var insertQuery = GetInsertStatement(request);
-                    await lease.Connection.Ask<LeaseInsertSuccess>(new LeaseInsert(insertQuery, lease.ConnectionLeaseId));
-
-                    sender.Tell(new InsertResponse());
+                    var response = await lease.Connection.Ask(new LeaseInsert(insertQuery, lease.ConnectionLeaseId));
+                    switch (response)
+                    {
+                        case LeaseInsertSuccess leaseInsertSuccess:
+                            sender.Tell(new InsertResponse());
+                            break;
+                        case BeeswaxException exception:
+                            sender.Tell(exception);
+                            break;
+                        case Exception exception:
+                            sender.Tell(exception);
+                            break;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -129,9 +140,12 @@ namespace Bongo.Actors.BulkOperations
                     switch (value)
                     {
                         case DateTimeOffset time: return time.ToUnixTimeMilliseconds();
+                        case DateTime time: return new DateTimeOffset(time).ToUnixTimeMilliseconds();
                         case int time: return time;
                         case long time: return time;
-                        default: throw new Exception("cannot parse");
+                        default:
+                            throw new Exception($"Type '{value.GetType().Name}' is invalid for partitioning." +
+                                                $" The valid types are DateTimeOffset, DateTime, long, and int");
                     }
                 })
                 .ToList();
@@ -161,7 +175,7 @@ namespace Bongo.Actors.BulkOperations
             foreach (var property in type.GetProperties())
             {
                 var columnNameAttribute = Attribute
-                    .GetCustomAttributes(type, typeof(ColumnNameAttribute))
+                    .GetCustomAttributes(property, typeof(ColumnNameAttribute))
                     .Cast<ColumnNameAttribute>()
                     .FirstOrDefault();
 

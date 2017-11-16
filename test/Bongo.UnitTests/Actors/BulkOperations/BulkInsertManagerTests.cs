@@ -178,7 +178,7 @@ namespace Bongo.UnitTests.Actors.BulkOperations
                     .Be($@"
 insert into
     default.BulkInsertManagerTests_Item
-        (id, time)
+        (id, at_time)
 values
     ({itemToInsert.Id},{itemToInsert.Time.ToUnixTimeMilliseconds()});
 ");
@@ -197,6 +197,7 @@ values
             [PrimaryKey]
             public long Id { get; set; }
 
+            [ColumnName("at_time")]
             public DateTimeOffset Time { get; set; }
         }
     }

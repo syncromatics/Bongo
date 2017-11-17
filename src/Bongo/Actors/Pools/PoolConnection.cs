@@ -152,7 +152,7 @@ namespace Bongo.Actors.Pools
 
                 Context
                     .GetLogger()
-                    .Error(e, "Error creating bongo client");
+                    .Warning("Could not start bongo client.. will retry");
 
                 return (false, null);
             }

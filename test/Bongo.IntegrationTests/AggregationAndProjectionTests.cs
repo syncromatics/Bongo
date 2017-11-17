@@ -7,6 +7,7 @@ using Bongo.TableDefinitions;
 using FluentAssertions;
 using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace Bongo.IntegrationTests
 {
     public class AggregationAndProjectionTests : IClassFixture<ImpalaTestFixture>

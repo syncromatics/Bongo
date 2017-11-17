@@ -195,6 +195,7 @@ namespace Bongo.Actors.BulkOperations
                         case long time: return time.ToString();
                         case string str: return $"\"{str}\"";
                         case Enum en: return Convert.ToInt32(en).ToString();
+                        case TimeSpan time: return ((long)time.TotalMilliseconds).ToString();
                         default: return value.ToString();
                     }
                 });

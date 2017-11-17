@@ -32,24 +32,47 @@ namespace Bongo.Actors.Tables
                 try
                 {
                     var tableInformation = GetTableName(type);
-                    await lease.Connection.Ask<QueryResponse>(new LeaseQuery(
+                    var response = await lease.Connection.Ask(new LeaseQuery(
                         $"use {tableInformation.Database};",
                         lease.ConnectionLeaseId));
 
-                    var tables =
-                        await lease.Connection.Ask<QueryResponse>(new LeaseQuery("show tables;",
-                            lease.ConnectionLeaseId));
-                    var exists = tables.Results.Any(table => table == tableInformation.TableName);
-                    if (!exists)
+                    switch (response)
                     {
-                        await CreateTable(lease, type);
+                        case QueryResponse queryResponse:
+                            break;
+                        case BeeswaxException exception:
+                            throw exception;
+                        case Exception exception:
+                            throw exception;
                     }
-                    else
+
+                    var tablesResponse = await lease.Connection.Ask(new LeaseQuery("show tables;",
+                        lease.ConnectionLeaseId));
+
+                    QueryResponse tables = null;
+                    switch (tablesResponse)
                     {
-                        var currentTableDefinition = await lease.Connection
-                            .Ask<QueryResponse>(new LeaseQuery($"show create table {tableInformation.TableName};",
-                                lease.ConnectionLeaseId));
-                        // todo compare existing table with what we would generate to ensure they are the same
+                        case QueryResponse queryResponse:
+                            tables = queryResponse;
+                            break;
+                        case Exception exception:
+                            throw exception;
+                    }
+
+                    if (tables != null)
+                    {
+                        var exists = tables.Results.Any(table => table == tableInformation.TableName);
+                        if (!exists)
+                        {
+                            await CreateTable(lease, type);
+                        }
+                        else
+                        {
+                            var currentTableDefinition = await lease.Connection
+                                .Ask<QueryResponse>(new LeaseQuery($"show create table {tableInformation.TableName};",
+                                    lease.ConnectionLeaseId));
+                            // todo compare existing table with what we would generate to ensure they are the same
+                        }
                     }
 
                     lease.Connection.Tell(new ConnectionLeaseRelease(lease));
@@ -57,9 +80,23 @@ namespace Bongo.Actors.Tables
                     Become(() => WaitForRequests(type));
                     Stash.UnstashAll();
                 }
+                catch (BeeswaxException e)
+                {
+                    lease.Connection.Tell(new ConnectionLeaseRelease(lease));
+                    Context
+                        .GetLogger()
+                        .Error(e, $"Error in CheckForExistence: {e.Message}");
+
+                    Context.System.Scheduler.ScheduleTellOnce(
+                        TimeSpan.FromSeconds(30),
+                        _poolManager,
+                        new ConnectionLeaseRequest(),
+                        Self);
+                }
                 catch (Exception e)
                 {
-                    Context.GetLogger().Error(e, "Error in CheckForExistence");
+                    lease.Connection.Tell(new ConnectionLeaseRelease(lease));
+                    Context.GetLogger().Error(e, $"Error in CheckForExistence: {e.Message}");
 
                     Context.System.Scheduler.ScheduleTellOnce(
                         TimeSpan.FromSeconds(30),
@@ -79,7 +116,7 @@ namespace Bongo.Actors.Tables
             Receive<PartitionInformationRequest>(_ =>
             {
                 var sender = Sender;
-                Become(() => RetrievePartionInformation(type, sender));
+                Become(() => RetrievePartitionInformation(type, sender));
             });
 
             Receive<List<AddRangePartitionRequest>>(newPartitions =>
@@ -89,24 +126,67 @@ namespace Bongo.Actors.Tables
             });
         }
 
-        private void RetrievePartionInformation(Type type, IActorRef sender)
+        private void RetrievePartitionInformation(Type type, IActorRef sender)
         {
             ReceiveAsync<ConnectionLease>(async lease =>
             {
                 try
                 {
                     var tableInformation = GetTableName(type);
-                    var currentTableDefinition = await lease.Connection
-                        .Ask<QueryResponse>(new LeaseQuery($"show create table {tableInformation.Database}.{tableInformation.TableName};", lease.ConnectionLeaseId));
+                    var response = await lease.Connection
+                        .Ask(new LeaseQuery($"show create table {tableInformation.Database}.{tableInformation.TableName};", lease.ConnectionLeaseId));
 
-                    var partitionDefinition = await lease.Connection
-                        .Ask<QueryResponse>(new LeaseQuery($"show range partitions {tableInformation.Database}.{tableInformation.TableName};", lease.ConnectionLeaseId));
+                    QueryResponse currentTableDefinition = null;
+                    switch (response)
+                    {
+                        case QueryResponse queryResponse:
+                            currentTableDefinition = queryResponse;
+                            break;
+                        case BeeswaxException exception:
+                            sender.Tell(exception);
+                            break;
+                        case Exception exception:
+                            sender.Tell(exception);
+                            break;
+                    }
 
-                    sender.Tell(PartitionInformation.Parse(currentTableDefinition.Results[0], partitionDefinition.Results));
+                    if (currentTableDefinition != null)
+                    {
+                        var hasRangeAttribute = Attribute
+                            .GetCustomAttributes(type, typeof(RangePartitionAttribute))
+                            .Cast<RangePartitionAttribute>()
+                            .Any();
+
+                        if (hasRangeAttribute)
+                        {
+                            var partitionResponse = await lease.Connection
+                                .Ask(new LeaseQuery(
+                                    $"show range partitions {tableInformation.Database}.{tableInformation.TableName};",
+                                    lease.ConnectionLeaseId));
+
+                            switch (partitionResponse)
+                            {
+                                case QueryResponse partitionDefinition:
+                                    sender.Tell(PartitionInformation.Parse(currentTableDefinition.Results[0],
+                                        partitionDefinition.Results));
+                                    break;
+                                case BeeswaxException exception:
+                                    sender.Tell(exception);
+                                    break;
+                                case Exception exception:
+                                    sender.Tell(exception);
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            sender.Tell(PartitionInformation.Parse(currentTableDefinition.Results[0], new List<string>()));
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
-                    Sender.Tell(e);
+                    sender.Tell(e);
                 }
 
                 lease.Connection.Tell(new ConnectionLeaseRelease(lease));
@@ -128,8 +208,6 @@ namespace Bongo.Actors.Tables
                 var tableInformation = GetTableName(type);
                 try
                 {
-
-
                     foreach (var addRangePartitionRequest in request)
                     {
                         try
@@ -183,10 +261,18 @@ ADD RANGE PARTITION
             return ("default", tableName, isKudu);
         }
 
-        private Task CreateTable(ConnectionLease client, Type type)
+        private async Task CreateTable(ConnectionLease client, Type type)
         {
             var createString = GetCreateTable(type);
-            return client.Connection.Ask<QueryResponse>(new LeaseQuery(createString, client.ConnectionLeaseId));
+            var response = await client.Connection.Ask(new LeaseQuery(createString, client.ConnectionLeaseId));
+
+            switch (response)
+            {
+                case QueryResponse queryResponse:
+                    return;
+                case Exception exception:
+                    throw exception;
+            }
         }
 
         private string GetCreateTable(Type type)
@@ -280,9 +366,12 @@ ADD RANGE PARTITION
             {
                 case "DateTimeOffset":
                     return "BIGINT";
+                case "TimeSpan":
+                    return "BIGINT";
             }
 
-            throw new Exception("Type unknown");
+            throw new Exception($"Cannot find Impala type for type '{t.Name}'. " +
+                                $"Supported types are int, long, double, string, DateTime, DateTimeOffset, and TimeSpan");
         }
     }
 }

@@ -128,7 +128,20 @@ namespace Bongo.Actors.BulkOperations
 
             var rangeProperty = type
                 .GetProperties()
-                .FirstOrDefault(property => property.Name.ToLower() == rangePartitionAttribute.Column.ToLower());
+                .FirstOrDefault(property =>
+                {
+                    var columnNameAttribute = Attribute
+                        .GetCustomAttributes(property, typeof(ColumnNameAttribute))
+                        .Cast<ColumnNameAttribute>()
+                        .FirstOrDefault();
+
+                    if (columnNameAttribute != null)
+                    {
+                        return columnNameAttribute.Name.ToLower() == rangePartitionAttribute.Column.ToLower();
+                    }
+
+                    return property.Name.ToLower() == rangePartitionAttribute.Column.ToLower();
+                });
 
             if(rangeProperty == null)
                 throw new Exception($"Column '{rangePartitionAttribute.Column}' not found");

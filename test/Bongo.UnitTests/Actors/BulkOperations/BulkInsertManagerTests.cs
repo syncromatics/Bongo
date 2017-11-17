@@ -191,7 +191,7 @@ values
             ExpectMsg<InsertResponse>();
         }
 
-        [RangePartition("time", 30)]
+        [RangePartition("at_time", 30)]
         private class BulkInsertManagerTests_Item
         {
             [PrimaryKey]

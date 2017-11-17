@@ -145,9 +145,13 @@ namespace Bongo.Actors.Query
             {
                 case "DateTimeOffset":
                     return str => DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(str));
+                case "TimeSpan":
+                    return str => TimeSpan.FromMilliseconds(long.Parse(str));
+
             }
 
-            throw new Exception("Type unknown");
+            throw new Exception($"'{type.Name}' type unknown. " +
+                                $"Supported types are int, long, double, string, DateTime, DateTimeOffset, and TimeSpan");
         }
     }
 }

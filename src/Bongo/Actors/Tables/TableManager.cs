@@ -288,7 +288,8 @@ ADD RANGE PARTITION
                 var typeString = GetImpalaTypeString(property.PropertyType);
                 var attributes = Attribute.GetCustomAttributes(property);
 
-                var nullable = attributes.Any(attribute => attribute is NullableAttribute)
+                var isNullable = property.PropertyType.Name == "Nullable`1";
+                var nullable = isNullable || attributes.Any(attribute => attribute is NullableAttribute)
                     ? "NULL"
                     : "NOT NULL";
 
@@ -350,7 +351,7 @@ ADD RANGE PARTITION
             return builder.ToString();
         }
 
-        private string GetImpalaTypeString(Type t)
+        private static string GetImpalaTypeString(Type t)
         {
             var typeCode = Type.GetTypeCode(t);
             switch (typeCode)
@@ -368,6 +369,8 @@ ADD RANGE PARTITION
                     return "BIGINT";
                 case "TimeSpan":
                     return "BIGINT";
+                case "Nullable`1":
+                    return GetImpalaTypeString(t.GetGenericArguments()[0]);
             }
 
             throw new Exception($"Cannot find Impala type for type '{t.Name}'. " +

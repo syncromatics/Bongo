@@ -33,7 +33,8 @@ namespace Bongo.IntegrationTests
                 {
                     Id = 1,
                     TestEnum = TestEnum.Off,
-                    SomeTime = TimeSpan.FromMinutes(2)
+                    SomeTime = TimeSpan.FromMinutes(2),
+                    NullableLong = 3
                 },
                 new TableCreationAndStartupCheckTests_TypeCheck
                 {
@@ -61,6 +62,9 @@ namespace Bongo.IntegrationTests
         {
             [PrimaryKey]
             public long Id { get; set; }
+
+            public long? NullableLong { get; set; }
+
             public TestEnum TestEnum { get; set; }
 
             public TimeSpan SomeTime { get; set; }

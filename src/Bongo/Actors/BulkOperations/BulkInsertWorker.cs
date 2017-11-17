@@ -188,16 +188,10 @@ namespace Bongo.Actors.BulkOperations
                 columnValues.Add(obj =>
                 {
                     var value = property.GetValue(obj);
-                    switch (value)
-                    {
-                        case DateTimeOffset time: return time.ToUnixTimeMilliseconds().ToString();
-                        case int time: return time.ToString();
-                        case long time: return time.ToString();
-                        case string str: return $"\"{str}\"";
-                        case Enum en: return Convert.ToInt32(en).ToString();
-                        case TimeSpan time: return ((long)time.TotalMilliseconds).ToString();
-                        default: return value.ToString();
-                    }
+                    if (value == null)
+                        return "null";
+
+                    return GetValueText(value);
                 });
             }
 
@@ -213,6 +207,21 @@ namespace Bongo.Actors.BulkOperations
 values
     {string.Join(", ", values)};
 ";
+        }
+
+        private static string GetValueText(object value)
+        {
+            switch (value)
+            {
+                case DateTimeOffset time: return time.ToUnixTimeMilliseconds().ToString();
+                case int time: return time.ToString();
+                case long time: return time.ToString();
+                case string str: return $"\"{str}\"";
+                case Enum en: return Convert.ToInt32(en).ToString();
+                case TimeSpan time: return ((long) time.TotalMilliseconds).ToString();
+                default:
+                    return value.ToString();
+            }
         }
     }
 }

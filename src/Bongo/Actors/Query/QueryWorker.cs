@@ -147,7 +147,9 @@ namespace Bongo.Actors.Query
                     return str => DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(str));
                 case "TimeSpan":
                     return str => TimeSpan.FromMilliseconds(long.Parse(str));
-
+                case "Nullable`1":
+                    var innerFunction = GetValueFunction(type.GetGenericArguments()[0]);
+                    return str => str == "NULL" ? null : innerFunction(str);
             }
 
             throw new Exception($"'{type.Name}' type unknown. " +

@@ -42,7 +42,25 @@ namespace Bongo.InnerClient.Thrift.Transport
 
         public void ReadBytes(byte[] output, int offset, int count)
         {
-            _client.GetStream().Read(output, offset, count);
+            var totalRead = 0;
+            var innerOffset = offset;
+            var remainingCount = count;
+
+            for (var i = 0; i < 7; i++)
+            {
+                var read = _client.GetStream().Read(output, innerOffset, remainingCount);
+                if (remainingCount - read == 0)
+                    return;
+
+                totalRead += read;
+                innerOffset += read;
+                remainingCount = count - totalRead;
+            }
+
+            if (totalRead != count)
+            {
+                throw new Exception($"Expected to read {count} bytes but only read {totalRead}");
+            }
         }
 
         public void WriteBytes(byte[] bytes, int offset, int count)
